@@ -1,0 +1,225 @@
+<html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快捷访问</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- 配置Tailwind自定义颜色和字体 - 低饱和度色系 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8A9FBF',
+                        secondary: '#A8B9CC',
+                        neutral: '#F5F5F5',
+                        // 低饱和度的差异化颜色
+                        taobao: '#E6A285',
+                        jd: '#A8C3B0',
+                        pdd: '#D9C5B4',
+                        baidu: '#A6B9CB',
+                        wechat: '#B9D8C2',
+                        weibo: '#E8C5C5',
+                        douyin: '#C9C5D4',
+                        bilibili: '#D4C5E8',
+                        zhihu: '#B5CCD2',
+                        netease: '#D9D2C3',
+                        tencent: '#C2D4D8',
+                        youku: '#C9D8C5'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .card-shadow {
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 12px -1px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            }
+        }
+    </style>
+</head>
+<body class="bg-neutral min-h-screen">
+    <!-- 顶部标题区域 -->
+    <header class="py-8 px-4 bg-gradient-to-r from-primary to-secondary">
+        <div class="container mx-auto text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-white tracking-tight">Hehedeliergou</h1>
+        </div>
+    </header>
+
+    <!-- 主内容区域 - 快捷访问卡片 -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            <!-- 淘宝 -->
+            <a href="https://www.taobao.com" target="_blank" rel="noopener noreferrer">
+                <div class="bg-taobao/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-taobao mb-3">
+                        <i class="fa fa-shopping-bag"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700">淘宝</h2>
+                </div>
+            </a>
+            
+            <!-- 京东 -->
+            <a href="https://www.jd.com" target="_blank" rel="noopener noreferrer">
+                <div class="bg-jd/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-jd mb-3">
+                        <i class="fa fa-shopping-cart"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700">京东</h2>
+                </div>
+            </a>
+            
+            <!-- 拼多多 -->
+            <a href="https://www.pinduoduo.com" target="_blank" rel="noopener noreferrer">
+                <div class="bg-pdd/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-pdd mb-3">
+                        <i class="fa fa-fire"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700">拼多多</h2>
+                </div>
+            </a>
+            
+            <!-- 百度 -->
+            <a href="https://www.baidu.com" target="_blank" rel="noopener noreferrer">
+                <div class="bg-baidu/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-baidu mb-3">
+                        <i class="fa fa-search"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700">百度</h2>
+                </div>
+            </a>
+            
+            <!-- 微信 -->
+            <a href="https://wx.qq.com" target="_blank" rel="noopener noreferrer">
+                <div class="bg-wechat/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-wechat mb-3">
+                        <i class="fa fa-weixin"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700">微信</h2>
+                </div>
+            </a>
+            
+            <!-- 微博 -->
+            <a href="https://weibo.com" target="_blank" rel="noopener noreferrer">
+                <div class="bg-weibo/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-weibo mb-3">
+                        <i class="fa fa-weibo"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700">微博</h2>
+                </div>
+            </a>
+            
+            <!-- 抖音 -->
+            <a href="https://www.douyin.com" target="_blank" rel="noopener noreferrer">
+                <div class="bg-douyin/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-douyin mb-3">
+                        <i class="fa fa-music"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700">抖音</h2>
+                </div>
+            </a>
+            
+            <!-- B站 -->
+            <a href="https://www.bilibili.com" target="_blank" rel="noopener noreferrer">
+                <div class="bg-bilibili/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-bilibili mb-3">
+                        <i class="fa fa-play-circle"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700">B站</h2>
+                </div>
+            </a>
+            
+            <!-- 知乎 -->
+            <a href="https://www.zhihu.com" target="_blank" rel="noopener noreferrer">
+                <div class="bg-zhihu/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-zhihu mb-3">
+                        <i class="fa fa-question-circle"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700">知乎</h2>
+                </div>
+            </a>
+            
+            <!-- 网易云音乐 -->
+            <a href="https://music.163.com" target="_blank" rel="noopener noreferrer">
+                <div class="bg-netease/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-netease mb-3">
+                        <i class="fa fa-headphones"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700">网易云</h2>
+                </div>
+            </a>
+            
+            <!-- 腾讯视频 -->
+            <a href="https://v.qq.com" target="_blank" rel="noopener noreferrer">
+                <div class="bg-tencent/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-tencent mb-3">
+                        <i class="fa fa-television"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700">腾讯视频</h2>
+                </div>
+            </a>
+            
+            <!-- 优酷 -->
+            <a href="https://www.youku.com" target="_blank" rel="noopener noreferrer">
+                <div class="bg-youku/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-youku mb-3">
+                        <i class="fa fa-film"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700">优酷</h2>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="mt-12 py-6 bg-gray-200/50 text-center text-gray-600 text-sm">
+        <div class="container mx-auto px-4">
+            <p>© 2023 Hehedeliergou 快捷访问</p>
+        </div>
+    </footer>
+
+    <!-- 交互效果脚本 -->
+    <script>
+        // 为所有卡片添加点击波纹效果
+        document.querySelectorAll('a > div').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // 创建波纹元素
+                const ripple = document.createElement('span');
+                ripple.classList.add('absolute', 'rounded-full', 'bg-white/50', 'transform', 'scale-0', 'animate-ping');
+                ripple.style.width = ripple.style.height = Math.max(card.offsetWidth, card.offsetHeight) + 'px';
+                
+                // 计算位置
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left - ripple.offsetWidth / 2;
+                const y = e.clientY - rect.top - ripple.offsetHeight / 2;
+                
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                
+                // 添加到卡片并设置相对定位
+                card.style.position = 'relative';
+                card.appendChild(ripple);
+                
+                // 移除波纹元素
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+    </script>
+
+
+</body></html>
