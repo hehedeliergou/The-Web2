@@ -1,32 +1,54 @@
 <html lang="zh-CN"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>快捷访问</title>
+    <title>One Step - 快捷访问</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     
     <!-- 配置Tailwind自定义颜色和字体 - 低饱和度色系 -->
     <script>
         tailwind.config = {
+            darkMode: 'class', // 启用基于class的深色模式
             theme: {
                 extend: {
                     colors: {
-                        primary: '#8A9FBF',
-                        secondary: '#A8B9CC',
-                        neutral: '#F5F5F5',
-                        // 低饱和度的差异化颜色
-                        taobao: '#E6A285',
-                        jd: '#A8C3B0',
-                        pdd: '#D9C5B4',
-                        baidu: '#A6B9CB',
-                        wechat: '#B9D8C2',
-                        weibo: '#E8C5C5',
-                        douyin: '#C9C5D4',
-                        bilibili: '#D4C5E8',
-                        zhihu: '#B5CCD2',
-                        netease: '#D9D2C3',
-                        tencent: '#C2D4D8',
-                        youku: '#C9D8C5'
+                        // 浅色模式主色调
+                        primary: '#8A9FBF', 
+                        secondary: '#A8B9CC', 
+                        neutral: '#F5F5F5', // 浅色模式背景中性色
+                        
+                        // 深色模式主色调
+                        'dark-primary': '#3A4F6F',
+                        'dark-secondary': '#58697C',
+                        'dark-bg': '#1A1A1A', // 深色模式背景
+                        'dark-text': '#E0E0E0', // 深色模式文本颜色
+                        'dark-header-from': '#2A3F5F',
+                        'dark-header-to': '#48596C',
+                        'dark-footer-bg': '#2A2A2A',
+                        'dark-footer-text': '#B0B0B0',
+
+                        // 现有服务的低饱和度差异化颜色 (这些颜色在深色模式下会与深色背景融合)
+                        taobao: '#E6A285', 
+                        jd: '#A8C3B0',     
+                        douyin: '#C9C5D4',   
+                        bilibili: '#D4C5E8', 
+                        netease: '#D9D2C3',  
+                        tencent: '#C2D4D8',  
+                        youku: '#C9D8C5',    
+                        gemini: '#B0C4DE',   
+                        chatgpt: '#A2D9CE',  
+                        github: '#D8BFD8',   
+                        google: '#ADD8E6',   
+                        youtube: '#F08080',  
+                        twitter: '#B0E0E6',  
+                        reddit: '#FFDAB9',   
+                        doubao: '#C0D9D9',   
+                        deepseek: '#D0C0D9', 
+                        qqmusic: '#C0D9E6',  
+                        facebook: '#AEC6CF', 
+                        instagram: '#F0C0C0',
+                        linkedin: '#B0D0D0', 
+                        pinterest: '#E6B0B0' 
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -49,13 +71,33 @@
                 box-shadow: 0 8px 12px -1px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             }
         }
+
+        /* 隐藏搜索结果滚动条 */
+        #global-search-results::-webkit-scrollbar {
+            display: none; /* For WebKit browsers (Chrome, Safari) */
+        }
+        #global-search-results {
+            -ms-overflow-style: none;  /* For IE and Edge */
+            scrollbar-width: none;  /* For Firefox */
+        }
     </style>
 </head>
-<body class="bg-neutral min-h-screen">
+<body class="bg-neutral min-h-screen pb-24 text-gray-800 dark:bg-dark-bg dark:text-dark-text"> <!-- 增加底部内边距，防止搜索框遮挡内容 -->
     <!-- 顶部标题区域 -->
-    <header class="py-8 px-4 bg-gradient-to-r from-primary to-secondary">
+    <header class="py-8 px-4 bg-gradient-to-r from-primary to-secondary dark:from-dark-header-from dark:to-dark-header-to relative">
         <div class="container mx-auto text-center">
-            <h1 class="text-4xl md:text-5xl font-bold text-white tracking-tight">Hehedeliergou</h1>
+            <h1 class="text-4xl md:text-5xl font-bold text-white tracking-tight">One Step</h1>
+        </div>
+        <!-- 深色/浅色模式切换按钮组 -->
+        <div class="absolute top-4 right-4 flex space-x-2">
+            <!-- 自动模式切换按钮 -->
+            <button id="auto-mode-toggle" class="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xl transition-colors duration-300">
+                <i class="fa fa-adjust" id="auto-mode-icon"></i>
+            </button>
+            <!-- 手动深色/浅色模式切换按钮 -->
+            <button id="theme-toggle" class="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xl transition-colors duration-300">
+                <i class="fa" id="theme-toggle-icon"></i>
+            </button>
         </div>
     </header>
 
@@ -63,162 +105,592 @@
     <main class="container mx-auto px-4 py-8">
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
             <!-- 淘宝 -->
-            <a href="https://www.taobao.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://s.taobao.com/search" target="_blank" rel="noopener noreferrer" data-search-prefix="?q=" data-pinyin-initials="tb">
                 <div class="bg-taobao/20 rounded-xl p-5 card-shadow card-hover text-center">
                     <div class="text-3xl text-taobao mb-3">
                         <i class="fa fa-shopping-bag"></i>
                     </div>
-                    <h2 class="font-medium text-gray-700">淘宝</h2>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">淘宝</h2>
                 </div>
             </a>
             
             <!-- 京东 -->
-            <a href="https://www.jd.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://search.jd.com/Search" target="_blank" rel="noopener noreferrer" data-search-prefix="?keyword=" data-pinyin-initials="jd">
                 <div class="bg-jd/20 rounded-xl p-5 card-shadow card-hover text-center">
                     <div class="text-3xl text-jd mb-3">
                         <i class="fa fa-shopping-cart"></i>
                     </div>
-                    <h2 class="font-medium text-gray-700">京东</h2>
-                </div>
-            </a>
-            
-            <!-- 拼多多 -->
-            <a href="https://www.pinduoduo.com" target="_blank" rel="noopener noreferrer">
-                <div class="bg-pdd/20 rounded-xl p-5 card-shadow card-hover text-center">
-                    <div class="text-3xl text-pdd mb-3">
-                        <i class="fa fa-fire"></i>
-                    </div>
-                    <h2 class="font-medium text-gray-700">拼多多</h2>
-                </div>
-            </a>
-            
-            <!-- 百度 -->
-            <a href="https://www.baidu.com" target="_blank" rel="noopener noreferrer">
-                <div class="bg-baidu/20 rounded-xl p-5 card-shadow card-hover text-center">
-                    <div class="text-3xl text-baidu mb-3">
-                        <i class="fa fa-search"></i>
-                    </div>
-                    <h2 class="font-medium text-gray-700">百度</h2>
-                </div>
-            </a>
-            
-            <!-- 微信 -->
-            <a href="https://wx.qq.com" target="_blank" rel="noopener noreferrer">
-                <div class="bg-wechat/20 rounded-xl p-5 card-shadow card-hover text-center">
-                    <div class="text-3xl text-wechat mb-3">
-                        <i class="fa fa-weixin"></i>
-                    </div>
-                    <h2 class="font-medium text-gray-700">微信</h2>
-                </div>
-            </a>
-            
-            <!-- 微博 -->
-            <a href="https://weibo.com" target="_blank" rel="noopener noreferrer">
-                <div class="bg-weibo/20 rounded-xl p-5 card-shadow card-hover text-center">
-                    <div class="text-3xl text-weibo mb-3">
-                        <i class="fa fa-weibo"></i>
-                    </div>
-                    <h2 class="font-medium text-gray-700">微博</h2>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">京东</h2>
                 </div>
             </a>
             
             <!-- 抖音 -->
-            <a href="https://www.douyin.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://www.douyin.com/search/" target="_blank" rel="noopener noreferrer" data-search-type="path-append" data-pinyin-initials="dy">
                 <div class="bg-douyin/20 rounded-xl p-5 card-shadow card-hover text-center">
                     <div class="text-3xl text-douyin mb-3">
                         <i class="fa fa-music"></i>
                     </div>
-                    <h2 class="font-medium text-gray-700">抖音</h2>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">抖音</h2>
                 </div>
             </a>
             
             <!-- B站 -->
-            <a href="https://www.bilibili.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://search.bilibili.com/all" target="_blank" rel="noopener noreferrer" data-search-prefix="?keyword=" data-pinyin-initials="bz">
                 <div class="bg-bilibili/20 rounded-xl p-5 card-shadow card-hover text-center">
                     <div class="text-3xl text-bilibili mb-3">
                         <i class="fa fa-play-circle"></i>
                     </div>
-                    <h2 class="font-medium text-gray-700">B站</h2>
-                </div>
-            </a>
-            
-            <!-- 知乎 -->
-            <a href="https://www.zhihu.com" target="_blank" rel="noopener noreferrer">
-                <div class="bg-zhihu/20 rounded-xl p-5 card-shadow card-hover text-center">
-                    <div class="text-3xl text-zhihu mb-3">
-                        <i class="fa fa-question-circle"></i>
-                    </div>
-                    <h2 class="font-medium text-gray-700">知乎</h2>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">B站</h2>
                 </div>
             </a>
             
             <!-- 网易云音乐 -->
-            <a href="https://music.163.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://music.163.com/#/search/m/" target="_blank" rel="noopener noreferrer" data-pinyin-initials="wyy">
                 <div class="bg-netease/20 rounded-xl p-5 card-shadow card-hover text-center">
                     <div class="text-3xl text-netease mb-3">
                         <i class="fa fa-headphones"></i>
                     </div>
-                    <h2 class="font-medium text-gray-700">网易云</h2>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">网易云</h2>
+                </div>
+            </a>
+
+            <!-- QQ音乐 (新增) -->
+            <a href="https://y.qq.com/n/ryqq/search" target="_blank" rel="noopener noreferrer" data-search-prefix="?w=" data-pinyin-initials="qqyy">
+                <div class="bg-qqmusic/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-qqmusic mb-3">
+                        <i class="fa fa-headphones"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">QQ音乐</h2>
                 </div>
             </a>
             
             <!-- 腾讯视频 -->
-            <a href="https://v.qq.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://v.qq.com/x/search/" target="_blank" rel="noopener noreferrer" data-search-prefix="?q=" data-pinyin-initials="txsp">
                 <div class="bg-tencent/20 rounded-xl p-5 card-shadow card-hover text-center">
                     <div class="text-3xl text-tencent mb-3">
                         <i class="fa fa-television"></i>
                     </div>
-                    <h2 class="font-medium text-gray-700">腾讯视频</h2>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">腾讯视频</h2>
                 </div>
             </a>
             
             <!-- 优酷 -->
-            <a href="https://www.youku.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://www.soku.com/search_video/" target="_blank" rel="noopener noreferrer" data-search-type="path-append" data-pinyin-initials="yk">
                 <div class="bg-youku/20 rounded-xl p-5 card-shadow card-hover text-center">
                     <div class="text-3xl text-youku mb-3">
                         <i class="fa fa-film"></i>
                     </div>
-                    <h2 class="font-medium text-gray-700">优酷</h2>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">优酷</h2>
+                </div>
+            </a>
+
+            <!-- Gemini -->
+            <a href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer">
+                <div class="bg-gemini/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-gemini mb-3">
+                        <i class="fa fa-magic"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">Gemini</h2>
+                </div>
+            </a>
+
+            <!-- ChatGPT -->
+            <a href="https://chat.openai.com/" target="_blank" rel="noopener noreferrer">
+                <div class="bg-chatgpt/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-chatgpt mb-3">
+                        <i class="fa fa-comments"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">ChatGPT</h2>
+                </div>
+            </a>
+
+            <!-- 豆包 (新增) -->
+            <a href="https://www.doubao.com/" target="_blank" rel="noopener noreferrer" data-pinyin-initials="db">
+                <div class="bg-doubao/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-doubao mb-3">
+                        <i class="fa fa-commenting-o"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">豆包</h2>
+                </div>
+            </a>
+
+            <!-- DeepSeek (新增) -->
+            <a href="https://chat.deepseek.com/" target="_blank" rel="noopener noreferrer">
+                <div class="bg-deepseek/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-deepseek mb-3">
+                        <i class="fa fa-flask"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">DeepSeek</h2>
+                </div>
+            </a>
+
+            <!-- GitHub (官方图标) -->
+            <a href="https://github.com/search" target="_blank" rel="noopener noreferrer" data-search-prefix="?q=">
+                <div class="bg-github/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-github mb-3">
+                        <i class="fa fa-github"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">GitHub</h2>
+                </div>
+            </a>
+
+            <!-- Google (官方图标) -->
+            <a href="https://www.google.com/search" target="_blank" rel="noopener noreferrer" data-search-prefix="?q=">
+                <div class="bg-google/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-google mb-3">
+                        <i class="fa fa-google"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">Google</h2>
+                </div>
+            </a>
+
+            <!-- YouTube -->
+            <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" data-search-prefix="results?search_query=">
+                <div class="bg-youtube/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-youtube mb-3">
+                        <i class="fa fa-video-camera"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">YouTube</h2>
+                </div>
+            </a>
+
+            <!-- Twitter (官方图标) -->
+            <a href="https://twitter.com/search" target="_blank" rel="noopener noreferrer" data-search-prefix="?q=">
+                <div class="bg-twitter/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-twitter mb-3">
+                        <i class="fa fa-twitter"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">Twitter</h2>
+                </div>
+            </a>
+
+            <!-- Reddit (官方图标) -->
+            <a href="https://www.reddit.com/search" target="_blank" rel="noopener noreferrer" data-search-prefix="?q=">
+                <div class="bg-reddit/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-reddit mb-3">
+                        <i class="fa fa-reddit"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">Reddit</h2>
+                </div>
+            </a>
+
+            <!-- Facebook (新增) -->
+            <a href="https://www.facebook.com/search/top/" target="_blank" rel="noopener noreferrer" data-search-prefix="?q=">
+                <div class="bg-facebook/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-facebook mb-3">
+                        <i class="fa fa-facebook"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">Facebook</h2>
+                </div>
+            </a>
+
+            <!-- Instagram (新增) -->
+            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">
+                <div class="bg-instagram/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-instagram mb-3">
+                        <i class="fa fa-instagram"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">Instagram</h2>
+                </div>
+            </a>
+
+            <!-- LinkedIn (新增) -->
+            <a href="https://www.linkedin.com/search/results/all/" target="_blank" rel="noopener noreferrer" data-search-prefix="?keywords=">
+                <div class="bg-linkedin/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-linkedin mb-3">
+                        <i class="fa fa-linkedin"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">LinkedIn</h2>
+                </div>
+            </a>
+
+            <!-- Pinterest (新增) -->
+            <a href="https://www.pinterest.com/search/pins/" target="_blank" rel="noopener noreferrer" data-search-prefix="?q=">
+                <div class="bg-pinterest/20 rounded-xl p-5 card-shadow card-hover text-center">
+                    <div class="text-3xl text-pinterest mb-3">
+                        <i class="fa fa-pinterest"></i>
+                    </div>
+                    <h2 class="font-medium text-gray-700 dark:text-dark-text">Pinterest</h2>
                 </div>
             </a>
         </div>
     </main>
 
     <!-- 页脚 -->
-    <footer class="mt-12 py-6 bg-gray-200/50 text-center text-gray-600 text-sm">
+    <footer class="mt-12 py-6 bg-gray-200/50 text-center text-gray-600 text-sm dark:bg-dark-footer-bg dark:text-dark-footer-text">
         <div class="container mx-auto px-4">
-            <p>© 2023 Hehedeliergou 快捷访问</p>
+            <p>© 2023 One Step 快捷访问</p>
         </div>
     </footer>
 
+    <!-- 全局搜索框 -->
+    <div id="global-search-wrapper" class="fixed bottom-4 left-1/2 -translate-x-1/2 
+                                        w-24 h-12 rounded-full 
+                                        bg-gray-100/20 
+                                        shadow-xl z-50 border border-gray-200 
+                                        flex items-center justify-center p-1 
+                                        transition-all duration-500 ease-in-out
+                                        dark:bg-gray-800/20 dark:border-gray-700">
+        <input type="text" id="global-search-input" placeholder="搜索" 
+               class="w-full h-full rounded-full 
+                      border border-transparent bg-white/20 
+                      focus:outline-none focus:ring-2 focus:ring-primary/50 
+                      text-gray-800 placeholder-gray-500 text-center 
+                      transition-all duration-500 ease-in-out px-3
+                      dark:bg-gray-700/20 dark:text-dark-text dark:placeholder-gray-400">
+        <div id="global-search-results" class="absolute bottom-full left-0 w-full 
+                                            bg-white/20 backdrop-blur-lg rounded-xl shadow-xl /* mb-2 removed */ hidden 
+                                            max-h-60 overflow-y-auto border border-gray-200
+                                            dark:bg-gray-800/20 dark:border-gray-700">
+            <!-- 搜索结果将在这里动态显示 -->
+        </div>
+    </div>
+
     <!-- 交互效果脚本 -->
     <script>
-        // 为所有卡片添加点击波纹效果
-        document.querySelectorAll('a > div').forEach(card => {
-            card.addEventListener('click', function(e) {
-                // 创建波纹元素
-                const ripple = document.createElement('span');
-                ripple.classList.add('absolute', 'rounded-full', 'bg-white/50', 'transform', 'scale-0', 'animate-ping');
-                ripple.style.width = ripple.style.height = Math.max(card.offsetWidth, card.offsetHeight) + 'px';
-                
-                // 计算位置
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left - ripple.offsetWidth / 2;
-                const y = e.clientY - rect.top - ripple.offsetHeight / 2;
-                
-                ripple.style.left = x + 'px';
-                ripple.style.top = y + 'px';
-                
-                // 添加到卡片并设置相对定位
-                card.style.position = 'relative';
-                card.appendChild(ripple);
-                
-                // 移除波纹元素
-                setTimeout(() => {
-                    ripple.remove();
-                }, 600);
+        // 存储所有快捷方式的数据
+        const shortcutsData = [];
+        document.querySelectorAll('a[href]').forEach(link => {
+            const nameElement = link.querySelector('h2');
+            if (nameElement) {
+                shortcutsData.push({
+                    name: nameElement.textContent.trim(),
+                    href: link.href,
+                    searchPrefix: link.dataset.searchPrefix,
+                    searchType: link.dataset.searchType,
+                    pinyinInitials: link.dataset.pinyinInitials || '', // 添加拼音首字母
+                    element: link // 保留对原始链接元素的引用，用于波纹效果
+                });
+            }
+        });
+
+        const searchWrapper = document.getElementById('global-search-wrapper');
+        const searchInput = document.getElementById('global-search-input');
+        const searchResultsContainer = document.getElementById('global-search-results');
+
+        // Initial state classes for wrapper
+        const initialWrapperClasses = ['w-24', 'h-12', 'p-1'];
+        // Expanded state classes for wrapper (Height and padding are now fixed)
+        const expandedWrapperClasses = ['w-[70%]', 'h-12', 'p-1']; 
+
+        // Initial state classes for input
+        const initialInputClasses = ['text-center', 'px-3']; 
+        // Expanded state classes for input
+        const expandedInputClasses = ['text-left', 'px-4']; 
+
+        // Set initial state
+        searchWrapper.classList.add(...initialWrapperClasses);
+        searchInput.classList.add(...initialInputClasses);
+        searchInput.placeholder = "搜索";
+
+        let shrinkTimeoutId = null; // 用于存储收缩的定时器ID
+        const SHRINK_DELAY = 200; // 延迟收缩的毫秒数
+
+        /**
+         * 打开快捷方式的通用函数，包含剪贴板搜索和波纹效果
+         * @param {object} shortcut - 快捷方式数据对象
+         * @param {Event} [event] - 触发事件，用于波纹效果
+         */
+        async function openShortcut(shortcut, event) {
+            const originalHref = shortcut.href;
+            const searchPrefix = shortcut.searchPrefix;
+            const searchType = shortcut.searchType;
+
+            let targetUrl = originalHref;
+
+            // 如果链接支持搜索功能
+            if (searchPrefix || searchType === 'path-append') {
+                try {
+                    const clipboardText = await navigator.clipboard.readText();
+                    if (clipboardText) {
+                        const encodedText = encodeURIComponent(clipboardText);
+                        if (searchType === 'path-append') {
+                            // 处理路径追加型搜索 (例如抖音、优酷)
+                            let base = originalHref.endsWith('/') ? originalHref : originalHref + '/';
+                            targetUrl = `${base}${encodedText}`;
+                        } else if (searchPrefix) {
+                            // 处理标准查询参数型搜索 (例如淘宝、京东、Google)
+                            targetUrl = `${originalHref}${searchPrefix}${encodedText}`;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('无法读取剪贴板内容或权限被拒绝。将打开网站主页。', err);
+                    // 发生错误时，targetUrl 保持为 originalHref
+                }
+            }
+            
+            window.open(targetUrl, '_blank'); // 在新标签页打开目标URL
+
+            // 波纹效果 (如果提供了事件和卡片元素)
+            if (event && shortcut.element) {
+                const card = shortcut.element.querySelector('div');
+                if (card) {
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('absolute', 'rounded-full', 'bg-white/50', 'transform', 'scale-0', 'animate-ping');
+                    ripple.style.width = ripple.style.height = Math.max(card.offsetWidth, card.offsetHeight) + 'px';
+                    
+                    const rect = card.getBoundingClientRect();
+                    const x = event.clientX - rect.left - ripple.offsetWidth / 2;
+                    const y = event.clientY - rect.top - ripple.offsetHeight / 2;
+                    
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    
+                    card.style.position = 'relative';
+                    card.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                }
+            }
+        }
+
+        // 修改现有快捷方式的点击监听器，使用新的 openShortcut 函数
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', async function(e) {
+                e.preventDefault(); // 阻止默认的链接跳转行为
+                const shortcutData = shortcutsData.find(s => s.element === this);
+                if (shortcutData) {
+                    await openShortcut(shortcutData, e);
+                }
             });
         });
+
+        // 展开搜索框的函数
+        function expandSearchBox() {
+            // 如果有待执行的收缩定时器，则取消它
+            if (shrinkTimeoutId) {
+                clearTimeout(shrinkTimeoutId);
+                shrinkTimeoutId = null;
+            }
+            searchWrapper.classList.remove(...initialWrapperClasses);
+            searchInput.classList.remove(...initialInputClasses);
+            searchWrapper.classList.add(...expandedWrapperClasses);
+            searchInput.classList.add(...expandedInputClasses);
+            searchInput.placeholder = "搜索快捷方式或直接跳转...";
+            searchInput.focus();
+        }
+
+        // 收缩搜索框的函数
+        function shrinkSearchBox() {
+            // 只有当输入框为空 AND 搜索结果容器是隐藏的时才真正收缩
+            if (searchInput.value === '' && searchResultsContainer.classList.contains('hidden')) {
+                searchWrapper.classList.remove(...expandedWrapperClasses);
+                searchInput.classList.remove(...expandedInputClasses);
+                searchWrapper.classList.add(...initialWrapperClasses);
+                searchInput.classList.add(...initialInputClasses);
+                searchInput.placeholder = "搜索";
+            }
+            // 无论是否收缩，都确保结果列表是隐藏的
+            searchResultsContainer.classList.add('hidden');
+        }
+
+        // 搜索框输入事件监听
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            searchResultsContainer.innerHTML = ''; // 清空之前的搜索结果
+
+            if (searchTerm.length === 0) {
+                searchResultsContainer.classList.add('hidden');
+                // 如果输入框为空且鼠标不在搜索框上，则收缩
+                if (!searchWrapper.matches(':hover')) {
+                    shrinkSearchBox();
+                }
+                return; // 输入为空时，无需进行后续过滤和显示结果
+            }
+
+            // 如果有输入，确保搜索框展开，并取消任何待处理的收缩定时器
+            expandSearchBox(); 
+
+            const filteredShortcuts = shortcutsData.filter(shortcut => 
+                shortcut.name.toLowerCase().includes(searchTerm) ||
+                shortcut.pinyinInitials.toLowerCase().includes(searchTerm) // 增加拼音首字母匹配
+            );
+
+            if (filteredShortcuts.length > 0) {
+                searchResultsContainer.classList.remove('hidden');
+                filteredShortcuts.forEach(shortcut => {
+                    const resultItem = document.createElement('div');
+                    resultItem.classList.add('p-2', 'cursor-pointer', 'hover:bg-gray-200/70', 'rounded-md', 'text-gray-800', 'dark:hover:bg-gray-600', 'dark:text-dark-text');
+                    resultItem.textContent = shortcut.name;
+                    resultItem.addEventListener('click', async (clickEvent) => {
+                        await openShortcut(shortcut, clickEvent);
+                        searchInput.value = ''; // 打开后清空搜索框
+                        searchResultsContainer.classList.add('hidden'); // 隐藏结果
+                        // 检查鼠标是否还在搜索框上，如果不在且输入框为空，则收缩
+                        if (!searchWrapper.matches(':hover')) {
+                            shrinkSearchBox();
+                        }
+                    });
+                    searchResultsContainer.appendChild(resultItem);
+                });
+            } else {
+                searchResultsContainer.classList.remove('hidden'); // 即使无结果也显示容器，以便显示“无匹配结果”
+                const noResultItem = document.createElement('div');
+                noResultItem.classList.add('p-2', 'text-gray-500', 'dark:text-gray-400');
+                noResultItem.textContent = '无匹配结果';
+                searchResultsContainer.appendChild(noResultItem);
+            }
+        });
+
+        // 监听 Enter 键，实现单结果直接跳转
+        searchInput.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const filteredShortcuts = shortcutsData.filter(shortcut => 
+                    shortcut.name.toLowerCase().includes(searchTerm) ||
+                    shortcut.pinyinInitials.toLowerCase().includes(searchTerm)
+                );
+
+                if (filteredShortcuts.length === 1) {
+                    e.preventDefault(); // 阻止默认的表单提交行为
+                    await openShortcut(filteredShortcuts[0], e);
+                    searchInput.value = '';
+                    searchResultsContainer.classList.add('hidden');
+                    // 检查鼠标是否还在搜索框上，如果不在且输入框为空，则收缩
+                    if (!searchWrapper.matches(':hover')) {
+                        shrinkSearchBox();
+                    }
+                } else if (filteredShortcuts.length > 1) {
+                    // 如果有多个结果，检查是否有精确匹配，有则直接跳转
+                    const exactMatch = filteredShortcuts.find(s => s.name.toLowerCase() === searchTerm);
+                    if (exactMatch) {
+                        e.preventDefault();
+                        await openShortcut(exactMatch, e);
+                        searchInput.value = '';
+                        searchResultsContainer.classList.add('hidden');
+                        // 检查鼠标是否还在搜索框上，如果不在且输入框为空，则收缩
+                        if (!searchWrapper.matches(':hover')) {
+                            shrinkSearchBox();
+                        }
+                    }
+                }
+            }
+        });
+
+        // 鼠标进入搜索框区域时展开
+        searchWrapper.addEventListener('mouseenter', () => {
+            expandSearchBox();
+        });
+
+        // 鼠标离开搜索框区域时，延迟收缩
+        searchWrapper.addEventListener('mouseleave', () => {
+            // 清除任何现有的收缩定时器，以避免重复调度
+            if (shrinkTimeoutId) {
+                clearTimeout(shrinkTimeoutId);
+            }
+            // 调度一个延迟收缩。shrinkSearchBox 函数将检查条件，然后才实际收缩。
+            shrinkTimeoutId = setTimeout(() => {
+                shrinkSearchBox();
+                shrinkTimeoutId = null; // 执行后清除定时器ID
+            }, SHRINK_DELAY);
+        });
+
+        // 点击搜索框外部区域时隐藏搜索结果，并收缩搜索框 (如果为空)
+        document.addEventListener('click', (e) => {
+            if (!searchWrapper.contains(e.target) && e.target !== searchInput) {
+                searchResultsContainer.classList.add('hidden');
+                if (searchInput.value === '') { // 只有当输入框为空时才收缩
+                    shrinkSearchBox();
+                }
+            }
+        });
+
+        // --- 深色/浅色模式切换逻辑 ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeToggleIcon = document.getElementById('theme-toggle-icon');
+        const autoModeToggleBtn = document.getElementById('auto-mode-toggle');
+        const autoModeIcon = document.getElementById('auto-mode-icon');
+
+        // themePreference: 'auto', 'light', 'dark'
+        let currentThemePreference = localStorage.getItem('themePreference') || 'auto';
+        // manualTheme: 'light', 'dark' (only used when themePreference is not 'auto')
+        let manualTheme = localStorage.getItem('manualTheme') || 'light'; 
+
+        function getThemeBasedOnTime() {
+            const now = new Date();
+            // 获取中国时间 (GMT+8)
+            const chinaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }));
+            const hour = chinaTime.getHours();
+            return (hour >= 18 || hour < 6) ? 'dark' : 'light'; // 晚上6点到早上6点为深色模式
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        function updateThemeUI() {
+            // Update manual toggle icon
+            if (document.documentElement.classList.contains('dark')) {
+                themeToggleIcon.classList.remove('fa-sun-o');
+                themeToggleIcon.classList.add('fa-moon-o');
+            } else {
+                themeToggleIcon.classList.remove('fa-moon-o');
+                themeToggleIcon.classList.add('fa-sun-o');
+            }
+
+            // Update auto mode icon style
+            if (currentThemePreference === 'auto') {
+                autoModeToggleBtn.classList.add('bg-primary/50', 'hover:bg-primary/60'); // Active style
+                autoModeToggleBtn.classList.remove('bg-white/10', 'hover:bg-white/20'); // Inactive style
+            } else {
+                autoModeToggleBtn.classList.remove('bg-primary/50', 'hover:bg-primary/60'); // Active style
+                autoModeToggleBtn.classList.add('bg-white/10', 'hover:bg-white/20'); // Inactive style
+            }
+        }
+
+        function applyCurrentTheme() {
+            if (currentThemePreference === 'auto') {
+                applyTheme(getThemeBasedOnTime());
+            } else {
+                applyTheme(manualTheme);
+            }
+            updateThemeUI();
+        }
+
+        // Event listener for manual theme toggle
+        themeToggleBtn.addEventListener('click', () => {
+            // If currently auto or light, switch to dark. If currently dark, switch to light.
+            if (currentThemePreference === 'auto') {
+                manualTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+            } else {
+                manualTheme = (manualTheme === 'light') ? 'dark' : 'light';
+            }
+            currentThemePreference = manualTheme; // Set preference to manual theme
+            localStorage.setItem('themePreference', currentThemePreference);
+            localStorage.setItem('manualTheme', manualTheme);
+            applyCurrentTheme();
+        });
+
+        // Event listener for auto mode toggle
+        autoModeToggleBtn.addEventListener('click', () => {
+            if (currentThemePreference === 'auto') {
+                // Switch from auto to manual (default to current applied theme)
+                currentThemePreference = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                manualTheme = currentThemePreference;
+            } else {
+                // Switch from manual to auto
+                currentThemePreference = 'auto';
+            }
+            localStorage.setItem('themePreference', currentThemePreference);
+            localStorage.setItem('manualTheme', manualTheme); // Save manualTheme even if going to auto
+            applyCurrentTheme();
+        });
+
+        // Initialize theme on page load
+        applyCurrentTheme();
+
+        // Optionally, update theme every minute if in auto mode (for time-based changes)
+        setInterval(() => {
+            if (currentThemePreference === 'auto') {
+                applyCurrentTheme();
+            }
+        }, 60 * 1000); // Every minute
     </script>
 
 
