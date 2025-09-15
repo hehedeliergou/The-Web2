@@ -40,7 +40,7 @@
                         sans: ['Inter', 'system-ui', 'sans-serif'],
                     },
                     keyframes: {
-                        gradient: { '0%': { backgroundPosition: '0% 50%' }, '50': { backgroundPosition: '100% 50%' }, '100%': { backgroundPosition: '0% 50%' } },
+                        gradient: { '0%': { backgroundPosition: '0% 50%' }, '50%': { backgroundPosition: '100% 50%' }, '100%': { backgroundPosition: '0% 50%' } },
                         fadeIn: { '0%': { opacity: 0, transform: 'translateY(10px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
                         slideIn: { '0%': { opacity: 0, transform: 'translateX(-10px)' }, '100%': { opacity: 1, transform: 'translateX(0)' } },
                     },
@@ -77,6 +77,7 @@
         .tooltip { @apply invisible opacity-0 transition-opacity duration-200; }
         .has-tooltip:hover .tooltip { @apply visible opacity-100; }
         #todo-list li { animation: slideIn 0.3s ease-out forwards; }
+        .form-radio { @apply h-4 w-4 text-primary focus:ring-primary border-gray-400 dark:border-gray-600; }
     </style>
 </head>
 <body class="font-sans antialiased text-light-text dark:text-dark-text transition-colors duration-500">
@@ -105,8 +106,8 @@
                 <div id="tab-content" class="min-h-[250px] p-2">
                     <div id="todo-content">
                         <form id="todo-form" class="flex items-center gap-2 mb-4">
-                            <input type="text" id="todo-input" placeholder="添加新任务..." class="w-full h-10 bg-black/5 dark:bg-white/5 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-primary">
-                            <button type="submit" class="w-10 h-10 bg-primary text-white rounded-lg flex-shrink-0 hover:bg-opacity-80 transition transform hover:scale-105"><i class="fa fa-plus"></i></button>
+                            <input type="text" id="todo-input" placeholder="正在连接云服务..." disabled class="w-full h-10 bg-black/5 dark:bg-white/5 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50">
+                            <button type="submit" id="todo-submit-btn" disabled class="w-10 h-10 bg-primary text-white rounded-lg flex-shrink-0 hover:bg-opacity-80 transition transform hover:scale-105 disabled:opacity-50"><i class="fa fa-plus"></i></button>
                         </form>
                         <ul id="todo-list" class="space-y-2 max-h-[160px] overflow-y-auto pr-2"></ul>
                          <div id="todo-placeholder" class="hidden text-center text-light-subtle dark:text-dark-subtle pt-10">
@@ -144,18 +145,29 @@
     <!-- Settings Modal -->
     <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" style="animation: fadeIn 0.3s ease-out;">
         <div class="w-full max-w-md mx-auto glass-card bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-6">
-            <h2 class="text-xl font-bold mb-4">高级设置</h2>
-            <div class="space-y-4">
+            <h2 class="text-xl font-bold mb-6">高级设置</h2>
+            <div class="space-y-6">
                 <div>
-                    <label for="api-key-input" class="block text-sm font-medium text-light-subtle dark:text-dark-subtle">Gemini API 密钥</label>
-                    <input type="password" id="api-key-input" placeholder="输入你的 API Key" class="mt-1 w-full bg-black/5 dark:bg-white/5 rounded-lg h-10 px-3 focus:outline-none focus:ring-2 focus:ring-primary">
+                    <label class="block text-sm font-medium text-light-subtle dark:text-dark-subtle mb-2">API 提供商</label>
+                    <div class="flex space-x-4">
+                         <label class="flex items-center"><input type="radio" name="api-provider" value="gemini" class="form-radio"><span class="ml-2">Google Gemini</span></label>
+                         <label class="flex items-center"><input type="radio" name="api-provider" value="openai" class="form-radio"><span class="ml-2">OpenAI 兼容</span></label>
+                    </div>
+                </div>
+                <div>
+                    <label for="api-key-input" class="block text-sm font-medium text-light-subtle dark:text-dark-subtle">API 密钥</label>
+                    <div class="mt-1 flex items-center space-x-2">
+                        <input type="password" id="api-key-input" placeholder="输入你的 API Key" class="w-full bg-black/5 dark:bg-white/5 rounded-lg h-10 px-3 focus:outline-none focus:ring-2 focus:ring-primary">
+                        <button id="check-connection-btn" class="px-3 py-2 text-sm bg-black/10 dark:bg-white/10 rounded-lg hover:bg-black/20 dark:hover:bg-white/20 transition">检查连接</button>
+                    </div>
+                    <p id="connection-status" class="text-xs mt-1 h-4"></p>
                 </div>
                 <div>
                     <label for="proxy-url-input" class="block text-sm font-medium text-light-subtle dark:text-dark-subtle">代理地址 (API 主机)</label>
                     <input type="text" id="proxy-url-input" placeholder="例如: https://my-proxy.com" class="mt-1 w-full bg-black/5 dark:bg-white/5 rounded-lg h-10 px-3 focus:outline-none focus:ring-2 focus:ring-primary">
                 </div>
             </div>
-            <div class="mt-6 flex justify-end space-x-3">
+            <div class="mt-8 flex justify-end space-x-3">
                 <button id="settings-close-btn" class="px-4 py-2 bg-black/10 dark:bg-white/10 rounded-lg hover:bg-black/20 dark:hover:bg-white/20 transition">关闭</button>
                 <button id="settings-save-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-80 transition">保存</button>
             </div>
@@ -183,34 +195,43 @@
             console.error("Firebase initialization failed:", e);
         }
 
-        // --- Gemini API ---
-        const DEFAULT_API_KEY = ""; // Injected by the environment
-        const DEFAULT_API_BASE_URL = "https://generativelanguage.googleapis.com";
+        // --- LLM API ---
+        const DEFAULT_GEMINI_KEY = ""; // Injected by the environment
+        const DEFAULT_GEMINI_URL = "https://generativelanguage.googleapis.com";
 
-        async function callGeminiAPI(prompt) {
-            const userApiKey = localStorage.getItem('gemini_api_key') || DEFAULT_API_KEY;
-            const userProxyUrl = localStorage.getItem('gemini_proxy_url') || DEFAULT_API_BASE_URL;
+        async function callLLMAPI(prompt, isTest = false) {
+            const provider = localStorage.getItem('llm_provider') || 'gemini';
+            const apiKey = localStorage.getItem('llm_api_key') || (provider === 'gemini' ? DEFAULT_GEMINI_KEY : '');
+            const proxyUrl = localStorage.getItem('llm_proxy_url');
+            
+            let apiUrl, payload, headers;
 
-            const apiUrl = `${userProxyUrl.replace(/\/$/, '')}/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${userApiKey}`;
+            if (provider === 'openai') {
+                apiUrl = `${(proxyUrl || 'https://api.openai.com').replace(/\/$/, '')}/v1/chat/completions`;
+                headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
+                payload = { model: "gpt-3.5-turbo", messages: [{ role: "user", content: prompt }] };
+            } else { // gemini
+                const baseUrl = proxyUrl || DEFAULT_GEMINI_URL;
+                apiUrl = `${baseUrl.replace(/\/$/, '')}/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                headers = { 'Content-Type': 'application/json' };
+                payload = { contents: [{ parts: [{ text: prompt }] }] };
+            }
             
             try {
-                const payload = { contents: [{ parts: [{ text: prompt }] }] };
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!response.ok) {
-                    throw new Error(`API call failed with status: ${response.status}`);
-                }
+                const response = await fetch(apiUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`API call failed with status: ${response.status}`);
                 const result = await response.json();
-                const candidate = result.candidates?.[0];
-                if (candidate && candidate.content?.parts?.[0]?.text) {
-                    return candidate.content.parts[0].text;
+                
+                if (isTest) return { success: true };
+                
+                if (provider === 'openai') {
+                    return result.choices?.[0]?.message?.content || "抱歉，无法获取建议。";
+                } else {
+                    return result.candidates?.[0]?.content?.parts?.[0]?.text || "抱歉，无法获取建议。";
                 }
-                return "抱歉，无法获取建议。";
             } catch (error) {
-                console.error("Gemini API call error:", error);
+                console.error("LLM API call error:", error);
+                if (isTest) return { success: false, error: error.message };
                 return "抱歉，API调用时发生错误。";
             }
         }
@@ -233,6 +254,7 @@
         const pomodoroContent = document.getElementById('pomodoro-content');
         const todoForm = document.getElementById('todo-form');
         const todoInput = document.getElementById('todo-input');
+        const todoSubmitBtn = document.getElementById('todo-submit-btn');
         const todoList = document.getElementById('todo-list');
         const todoPlaceholder = document.getElementById('todo-placeholder');
         const pomodoroTimerEl = document.getElementById('pomodoro-timer');
@@ -244,6 +266,9 @@
         const settingsSaveBtn = document.getElementById('settings-save-btn');
         const apiKeyInput = document.getElementById('api-key-input');
         const proxyUrlInput = document.getElementById('proxy-url-input');
+        const apiProviderRadios = document.querySelectorAll('input[name="api-provider"]');
+        const checkConnectionBtn = document.getElementById('check-connection-btn');
+        const connectionStatusEl = document.getElementById('connection-status');
 
         let pomodoroInterval, pomodoroTime = 25 * 60, isPomodoroRunning = false;
         
@@ -280,7 +305,7 @@
                 }
             }
             const prompt = "请生成一句简短、积极向上、适合学生的励志名言。";
-            const quote = await callGeminiAPI(prompt);
+            const quote = await callLLMAPI(prompt);
             dailyInspirationEl.textContent = `✨ ${quote}`;
             localStorage.setItem('dailyInspiration', JSON.stringify({ date: today, quote }));
         }
@@ -349,25 +374,52 @@
                     const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderTodos(todos);
                 });
+
+                // Enable todo form
+                todoInput.disabled = false;
+                todoSubmitBtn.disabled = false;
+                todoInput.placeholder = '添加新任务...';
+
             } else {
                 signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
             }
         }
         
         const openSettings = () => {
-            apiKeyInput.value = localStorage.getItem('gemini_api_key') || '';
-            proxyUrlInput.value = localStorage.getItem('gemini_proxy_url') || '';
+            const provider = localStorage.getItem('llm_provider') || 'gemini';
+            document.querySelector(`input[name="api-provider"][value="${provider}"]`).checked = true;
+            apiKeyInput.value = localStorage.getItem('llm_api_key') || '';
+            proxyUrlInput.value = localStorage.getItem('llm_proxy_url') || '';
+            connectionStatusEl.textContent = '';
             settingsModal.classList.remove('hidden');
         };
         const closeSettings = () => settingsModal.classList.add('hidden');
         const saveSettings = () => {
+            const provider = document.querySelector('input[name="api-provider"]:checked').value;
+            localStorage.setItem('llm_provider', provider);
+            
             const apiKey = apiKeyInput.value.trim();
+            if (apiKey) localStorage.setItem('llm_api_key', apiKey);
+            else localStorage.removeItem('llm_api_key');
+            
             const proxyUrl = proxyUrlInput.value.trim();
-            if (apiKey) localStorage.setItem('gemini_api_key', apiKey);
-            else localStorage.removeItem('gemini_api_key');
-            if (proxyUrl) localStorage.setItem('gemini_proxy_url', proxyUrl);
-            else localStorage.removeItem('gemini_proxy_url');
+            if (proxyUrl) localStorage.setItem('llm_proxy_url', proxyUrl);
+            else localStorage.removeItem('llm_proxy_url');
+            
             closeSettings();
+        };
+
+        const checkConnection = async () => {
+            connectionStatusEl.textContent = '正在检查...';
+            connectionStatusEl.className = 'text-xs mt-1 h-4 text-light-subtle dark:text-dark-subtle';
+            const result = await callLLMAPI("hi", true);
+            if (result.success) {
+                connectionStatusEl.textContent = '连接成功!';
+                connectionStatusEl.className = 'text-xs mt-1 h-4 text-green-500';
+            } else {
+                connectionStatusEl.textContent = `连接失败: ${result.error}`;
+                connectionStatusEl.className = 'text-xs mt-1 h-4 text-red-500';
+            }
         };
 
         const setupEventListeners = () => {
@@ -375,13 +427,15 @@
             settingsBtn.addEventListener('click', openSettings);
             settingsCloseBtn.addEventListener('click', closeSettings);
             settingsSaveBtn.addEventListener('click', saveSettings);
+            checkConnectionBtn.addEventListener('click', checkConnection);
+
             searchInput.addEventListener('keydown', (e) => e.key === 'Enter' && handleSearch());
             todoTabBtn.addEventListener('click', () => switchTab('todo'));
             pomodoroTabBtn.addEventListener('click', () => switchTab('pomodoro'));
             todoForm.addEventListener('submit', async (e) => { e.preventDefault(); const text = todoInput.value.trim(); if (text && userId) { await addDoc(collection(db, "artifacts", appId, "users", userId, "todos"), { text, done: false, createdAt: serverTimestamp() }); todoInput.value = ''; } });
             todoList.addEventListener('click', async (e) => {
                 const button = e.target.closest('button');
-                if (!button) { // Handle checkbox clicks
+                if (!button) {
                     const checkbox = e.target.closest('input[type="checkbox"]');
                     if (checkbox) {
                         const id = checkbox.dataset.id;
@@ -389,22 +443,20 @@
                     }
                     return;
                 }
-
                 if (button.classList.contains('delete-todo-btn')) {
                     const id = button.dataset.id;
                     if (id && userId) deleteDoc(doc(db, "artifacts", appId, "users", userId, "todos", id));
                 }
-
                 if (button.classList.contains('breakdown-todo-btn')) {
                     const taskText = button.dataset.task;
                     if (!taskText || !userId) return;
                     
                     const icon = button.querySelector('i');
-                    icon.className = 'fa fa-spinner fa-spin'; // Show loading
+                    icon.className = 'fa fa-spinner fa-spin';
                     button.disabled = true;
 
                     const prompt = `请将以下任务分解为更小的、可执行的步骤，直接返回一个由换行符分隔的列表，不要使用数字或项目符号，每一步都以动词开头:\n\n任务: "${taskText}"`;
-                    const result = await callGeminiAPI(prompt);
+                    const result = await callLLMAPI(prompt);
                     
                     const subtasks = result.split('\n').filter(task => task.trim() !== '');
                     for (const subtask of subtasks) {
@@ -414,8 +466,7 @@
                             createdAt: serverTimestamp()
                         });
                     }
-
-                    icon.className = 'fa fa-magic'; // Restore icon
+                    icon.className = 'fa fa-magic';
                     button.disabled = false;
                 }
             });
