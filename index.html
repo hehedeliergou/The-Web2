@@ -176,6 +176,11 @@
 
 
     <script type="module">
+        if (!window.firebase) {
+            document.body.innerHTML = `<div style="color: red; padding: 20px;"><h1>错误：Firebase 模块加载失败，请刷新页面重试。</h1></div>`;
+            throw new Error("Firebase modules not loaded.");
+        }
+    
         const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore, doc, getDoc, setDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, deleteDoc, serverTimestamp } = window.firebase;
         
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
@@ -193,6 +198,7 @@
             onAuthStateChanged(auth, handleAuthState);
         } catch (e) {
             console.error("Firebase initialization failed:", e);
+            alert("无法连接到云服务，部分功能可能无法使用。");
         }
 
         // --- LLM API ---
