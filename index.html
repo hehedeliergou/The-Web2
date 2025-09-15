@@ -198,7 +198,7 @@
             onAuthStateChanged(auth, handleAuthState);
         } catch (e) {
             console.error("Firebase initialization failed:", e);
-            alert("无法连接到云服务，部分功能可能无法使用。");
+            console.error("无法连接到云服务，部分功能可能无法使用。");
         }
 
         // --- LLM API ---
@@ -357,7 +357,7 @@
         const updatePomodoroDisplay = () => {
             pomodoroTimerEl.textContent = `${String(Math.floor(pomodoroTime / 60)).padStart(2, '0')}:${String(pomodoroTime % 60).padStart(2, '0')}`;
         };
-        const startPomodoro = () => { if (!isPomodoroRunning) { isPomodoroRunning = true; pomodoroStartBtn.textContent = '暂停'; pomodoroInterval = setInterval(() => { pomodoroTime--; updatePomodoroDisplay(); if (pomodoroTime <= 0) { stopPomodoro(); alert('专注时间结束！'); } }, 1000); } };
+        const startPomodoro = () => { if (!isPomodoroRunning) { isPomodoroRunning = true; pomodoroStartBtn.textContent = '暂停'; pomodoroInterval = setInterval(() => { pomodoroTime--; updatePomodoroDisplay(); if (pomodoroTime <= 0) { stopPomodoro(); console.log('专注时间结束！'); /* alert('专注时间结束！'); */ } }, 1000); } };
         const stopPomodoro = () => { clearInterval(pomodoroInterval); isPomodoroRunning = false; pomodoroStartBtn.textContent = '开始'; };
         const resetPomodoro = () => { stopPomodoro(); pomodoroTime = 25 * 60; updatePomodoroDisplay(); };
 
@@ -418,7 +418,24 @@
         const checkConnection = async () => {
             connectionStatusEl.textContent = '正在检查...';
             connectionStatusEl.className = 'text-xs mt-1 h-4 text-light-subtle dark:text-dark-subtle';
+            // Save settings temporarily for the test call
+            const provider = document.querySelector('input[name="api-provider"]:checked').value;
+            const apiKey = apiKeyInput.value.trim();
+            const proxyUrl = proxyUrlInput.value.trim();
+            const originalProvider = localStorage.getItem('llm_provider');
+            const originalApiKey = localStorage.getItem('llm_api_key');
+            const originalProxyUrl = localStorage.getItem('llm_proxy_url');
+            localStorage.setItem('llm_provider', provider);
+            if(apiKey) localStorage.setItem('llm_api_key', apiKey); else localStorage.removeItem('llm_api_key');
+            if(proxyUrl) localStorage.setItem('llm_proxy_url', proxyUrl); else localStorage.removeItem('llm_proxy_url');
+            
             const result = await callLLMAPI("hi", true);
+            
+            // Restore original settings
+            if (originalProvider) localStorage.setItem('llm_provider', originalProvider); else localStorage.removeItem('llm_provider');
+            if (originalApiKey) localStorage.setItem('llm_api_key', originalApiKey); else localStorage.removeItem('llm_api_key');
+            if (originalProxyUrl) localStorage.setItem('llm_proxy_url', originalProxyUrl); else localStorage.removeItem('llm_proxy_url');
+            
             if (result.success) {
                 connectionStatusEl.textContent = '连接成功!';
                 connectionStatusEl.className = 'text-xs mt-1 h-4 text-green-500';
