@@ -80,6 +80,47 @@
             -ms-overflow-style: none;  /* For IE and Edge */
             scrollbar-width: none;  /* For Firefox */
         }
+
+        /* 样式用于设置菜单 */
+        #settings-menu {
+            position: absolute;
+            top: 55px; /* 调整以适应按钮高度 */
+            left: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none; /* 初始状态隐藏 */
+        }
+
+        #settings-menu label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #settings-menu select,
+        #settings-menu input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #settings-menu button {
+            background-color: #5cb85c;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #settings-menu button:hover {
+            background-color: #4cae4c;
+        }
     </style>
 </head>
 <body class="bg-neutral min-h-screen pb-24 text-gray-800 dark:bg-dark-bg dark:text-dark-text"> <!-- 增加底部内边距，防止搜索框遮挡内容 -->
@@ -87,6 +128,25 @@
     <header class="py-8 px-4 bg-gradient-to-r from-primary to-secondary dark:from-dark-header-from dark:to-dark-header-to relative">
         <div class="container mx-auto text-center">
             <h1 class="text-4xl md:text-5xl font-bold text-white tracking-tight">One Step</h1>
+        </div>
+        <!-- 设置按钮 -->
+        <button id="settings-button" class="absolute top-4 left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xl transition-colors duration-300">
+            <i class="fa fa-cog"></i>
+        </button>
+
+        <!-- 设置菜单 -->
+        <div id="settings-menu">
+            <label for="search-engine">选择搜索引擎:</label>
+            <select id="search-engine">
+                <option value="bing">必应</option>
+                <option value="google">Google</option>
+                <option value="baidu">百度</option>
+                <!-- 可以添加更多选项 -->
+                <option value="custom">自定义</option>
+            </select>
+            <label for="custom-search-url">自定义搜索引擎 URL:</label>
+            <input type="text" id="custom-search-url" placeholder="例如: https://www.example.com/search?q=">
+            <button onclick="saveSettings()">保存设置</button>
         </div>
         <!-- 深色/浅色模式切换按钮组 -->
         <div class="absolute top-4 right-4 flex space-x-2">
@@ -386,6 +446,44 @@
         let shrinkTimeoutId = null; // 用于存储收缩的定时器ID
         const SHRINK_DELAY = 200; // 延迟收缩的毫秒数
 
+        // 获取设置元素
+        const settingsButton = document.getElementById('settings-button');
+        const settingsMenu = document.getElementById('settings-menu');
+        let currentSearchEngine = localStorage.getItem('searchEngine') || 'bing';
+        let customSearchURL = localStorage.getItem('customSearchURL') || '';
+
+        // 初始化搜索引擎选择
+        document.getElementById('search-engine').value = currentSearchEngine;
+        document.getElementById('custom-search-url').value = customSearchURL;
+
+        // 保存设置
+        function saveSettings() {
+            const selectedEngine = document.getElementById('search-engine').value;
+            const customURL = document.getElementById('custom-search-url').value;
+
+            localStorage.setItem('searchEngine', selectedEngine);
+            localStorage.setItem('customSearchURL', customURL);
+
+            currentSearchEngine = selectedEngine;
+            customSearchURL = customURL;
+
+            alert('设置已保存！');
+            settingsMenu.style.display = 'none'; // 关闭设置菜单
+        }
+
+        // 切换设置菜单的显示
+        settingsButton.addEventListener('click', function(event) {
+            event.stopPropagation(); // 阻止事件冒泡
+            settingsMenu.style.display = settingsMenu.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // 点击页面其他地方时关闭设置菜单
+        document.addEventListener('click', function(event) {
+            if (!settingsMenu.contains(event.target) && event.target !== settingsButton) {
+                settingsMenu.style.display = 'none';
+            }
+        });
+
         /**
          * 打开快捷方式的通用函数，包含剪贴板搜索和波纹效果
          * @param {object} shortcut - 快捷方式数据对象
@@ -518,7 +616,7 @@
                         await openShortcut(shortcut, clickEvent);
                         searchInput.value = ''; // 打开后清空搜索框
                         searchResultsContainer.classList.add('hidden'); // 隐藏结果
-                        // 检查鼠标是否还在搜索框上，如果不在且输入框为空，则收缩
+                        // 检查鼠标是否还在搜索框上，如果不在搜索框上且输入框为空，则收缩
                         if (!searchWrapper.matches(':hover')) {
                             shrinkSearchBox();
                         }
@@ -548,150 +646,10 @@
                     await openShortcut(filteredShortcuts[0], e);
                     searchInput.value = '';
                     searchResultsContainer.classList.add('hidden');
-                    // 检查鼠标是否还在搜索框上，如果不在且输入框为空，则收缩
+                    // 检查鼠标是否还在搜索框上，如果不在搜索框上且输入框为空，则收缩
                     if (!searchWrapper.matches(':hover')) {
                         shrinkSearchBox();
                     }
                 } else if (filteredShortcuts.length > 1) {
                     // 如果有多个结果，检查是否有精确匹配，有则直接跳转
-                    const exactMatch = filteredShortcuts.find(s => s.name.toLowerCase() === searchTerm);
-                    if (exactMatch) {
-                        e.preventDefault();
-                        await openShortcut(exactMatch, e);
-                        searchInput.value = '';
-                        searchResultsContainer.classList.add('hidden');
-                        // 检查鼠标是否还在搜索框上，如果不在且输入框为空，则收缩
-                        if (!searchWrapper.matches(':hover')) {
-                            shrinkSearchBox();
-                        }
-                    }
-                }
-            }
-        });
-
-        // 鼠标进入搜索框区域时展开
-        searchWrapper.addEventListener('mouseenter', () => {
-            expandSearchBox();
-        });
-
-        // 鼠标离开搜索框区域时，延迟收缩
-        searchWrapper.addEventListener('mouseleave', () => {
-            // 清除任何现有的收缩定时器，以避免重复调度
-            if (shrinkTimeoutId) {
-                clearTimeout(shrinkTimeoutId);
-            }
-            // 调度一个延迟收缩。shrinkSearchBox 函数将检查条件，然后才实际收缩。
-            shrinkTimeoutId = setTimeout(() => {
-                shrinkSearchBox();
-                shrinkTimeoutId = null; // 执行后清除定时器ID
-            }, SHRINK_DELAY);
-        });
-
-        // 点击搜索框外部区域时隐藏搜索结果，并收缩搜索框 (如果为空)
-        document.addEventListener('click', (e) => {
-            if (!searchWrapper.contains(e.target) && e.target !== searchInput) {
-                searchResultsContainer.classList.add('hidden');
-                if (searchInput.value === '') { // 只有当输入框为空时才收缩
-                    shrinkSearchBox();
-                }
-            }
-        });
-
-        // --- 深色/浅色模式切换逻辑 ---
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const themeToggleIcon = document.getElementById('theme-toggle-icon');
-        const autoModeToggleBtn = document.getElementById('auto-mode-toggle');
-        const autoModeIcon = document.getElementById('auto-mode-icon');
-
-        // themePreference: 'auto', 'light', 'dark'
-        let currentThemePreference = localStorage.getItem('themePreference') || 'auto';
-        // manualTheme: 'light', 'dark' (only used when themePreference is not 'auto')
-        let manualTheme = localStorage.getItem('manualTheme') || 'light'; 
-
-        function getThemeBasedOnTime() {
-            const now = new Date();
-            // 获取中国时间 (GMT+8)
-            const chinaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }));
-            const hour = chinaTime.getHours();
-            return (hour >= 18 || hour < 6) ? 'dark' : 'light'; // 晚上6点到早上6点为深色模式
-        }
-
-        function applyTheme(theme) {
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        }
-
-        function updateThemeUI() {
-            // Update manual toggle icon
-            if (document.documentElement.classList.contains('dark')) {
-                themeToggleIcon.classList.remove('fa-sun-o');
-                themeToggleIcon.classList.add('fa-moon-o');
-            } else {
-                themeToggleIcon.classList.remove('fa-moon-o');
-                themeToggleIcon.classList.add('fa-sun-o');
-            }
-
-            // Update auto mode icon style
-            if (currentThemePreference === 'auto') {
-                autoModeToggleBtn.classList.add('bg-primary/50', 'hover:bg-primary/60'); // Active style
-                autoModeToggleBtn.classList.remove('bg-white/10', 'hover:bg-white/20'); // Inactive style
-            } else {
-                autoModeToggleBtn.classList.remove('bg-primary/50', 'hover:bg-primary/60'); // Active style
-                autoModeToggleBtn.classList.add('bg-white/10', 'hover:bg-white/20'); // Inactive style
-            }
-        }
-
-        function applyCurrentTheme() {
-            if (currentThemePreference === 'auto') {
-                applyTheme(getThemeBasedOnTime());
-            } else {
-                applyTheme(manualTheme);
-            }
-            updateThemeUI();
-        }
-
-        // Event listener for manual theme toggle
-        themeToggleBtn.addEventListener('click', () => {
-            // If currently auto or light, switch to dark. If currently dark, switch to light.
-            if (currentThemePreference === 'auto') {
-                manualTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-            } else {
-                manualTheme = (manualTheme === 'light') ? 'dark' : 'light';
-            }
-            currentThemePreference = manualTheme; // Set preference to manual theme
-            localStorage.setItem('themePreference', currentThemePreference);
-            localStorage.setItem('manualTheme', manualTheme);
-            applyCurrentTheme();
-        });
-
-        // Event listener for auto mode toggle
-        autoModeToggleBtn.addEventListener('click', () => {
-            if (currentThemePreference === 'auto') {
-                // Switch from auto to manual (default to current applied theme)
-                currentThemePreference = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-                manualTheme = currentThemePreference;
-            } else {
-                // Switch from manual to auto
-                currentThemePreference = 'auto';
-            }
-            localStorage.setItem('themePreference', currentThemePreference);
-            localStorage.setItem('manualTheme', manualTheme); // Save manualTheme even if going to auto
-            applyCurrentTheme();
-        });
-
-        // Initialize theme on page load
-        applyCurrentTheme();
-
-        // Optionally, update theme every minute if in auto mode (for time-based changes)
-        setInterval(() => {
-            if (currentThemePreference === 'auto') {
-                applyCurrentTheme();
-            }
-        }, 60 * 1000); // Every minute
-    </script>
-
-
-</body></html>
+                    const exactMatch = filteredShortcuts.find(s => s.name.
