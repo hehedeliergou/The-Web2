@@ -8,7 +8,516 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     
+    <script type="module"><html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - 你的个人主页</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
     <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        window.firebase = {
+            initializeApp,
+            getAuth, signInAnonymously, onAuthStateChanged,
+            getFirestore, doc, getDoc, setDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, deleteDoc, serverTimestamp
+        };
+    </script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#007aff',
+                        'light-bg': '#f7f7f7',
+                        'dark-bg': '#0d1117',
+                        'light-card': 'rgba(255, 255, 255, 0.65)',
+                        'dark-card': 'rgba(28, 28, 30, 0.55)',
+                        'light-text': '#1d1d1f',
+                        'dark-text': '#f5f5f7',
+                        'light-subtle': '#6e6e73',
+                        'dark-subtle': '#86868b',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    keyframes: {
+                        gradient: { '0%': { backgroundPosition: '0% 50%' }, '50%': { backgroundPosition: '100% 50%' }, '100%': { backgroundPosition: '0% 50%' } },
+                        fadeIn: { '0%': { opacity: 0, transform: 'translateY(10px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+                        slideIn: { '0%': { opacity: 0, transform: 'translateX(-10px)' }, '100%': { opacity: 1, transform: 'translateX(0)' } },
+                    },
+                    animation: {
+                        gradient: 'gradient 15s ease infinite',
+                        fadeIn: 'fadeIn 0.5s ease-out forwards',
+                        slideIn: 'slideIn 0.3s ease-out forwards',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        /* Base & Background */
+        body {
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        .light-theme-bg { background-image: linear-gradient(-45deg, #fbc2eb, #a6c1ee, #fbc2eb, #a6c1ee); }
+        .dark-theme-bg { background-image: linear-gradient(-45deg, #0d1a26, #2a4a69, #0d1a26, #2a4a69); }
+        
+        /* Glassmorphism Card */
+        .glass-card {
+            -webkit-backdrop-filter: blur(25px);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-shadow: 0 1px 1px rgba(0,0,0,0.05);
+        }
+
+        /* Custom UI Styles */
+        .tab-btn.active { @apply bg-white/30 dark:bg-black/30; }
+        .todo-item input:checked + span { @apply line-through text-light-subtle dark:text-dark-subtle; }
+        .tooltip { @apply invisible opacity-0 transition-opacity duration-200; }
+        .has-tooltip:hover .tooltip { @apply visible opacity-100; }
+        #todo-list li { animation: slideIn 0.3s ease-out forwards; }
+        .form-radio { @apply h-4 w-4 text-primary focus:ring-primary border-gray-400 dark:border-gray-600; }
+    </style>
+</head>
+<body class="font-sans antialiased text-light-text dark:text-dark-text transition-colors duration-500">
+
+    <main class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-xl mx-auto glass-card bg-light-card dark:bg-dark-card rounded-3xl shadow-2xl p-6 space-y-6" style="animation: fadeIn 0.8s ease-out;">
+            
+            <div class="text-center">
+                <div id="greeting" class="text-xl font-medium text-light-subtle dark:text-dark-subtle mb-2">下午好</div>
+                <div id="clock" class="text-6xl md:text-7xl font-bold tracking-tight">16:45</div>
+                <div id="date" class="text-lg text-light-subtle dark:text-dark-subtle">2025年9月15日 星期一</div>
+                <div id="daily-inspiration" class="text-sm text-light-subtle dark:text-dark-subtle mt-3 italic h-5">✨ 正在获取今日灵感...</div>
+            </div>
+
+            <div class="relative">
+                <i class="fa fa-search absolute left-5 top-1/2 -translate-y-1/2 text-xl text-light-subtle dark:text-dark-subtle"></i>
+                <input type="text" id="search-input" placeholder="使用必应搜索或输入网址..." class="w-full bg-black/5 dark:bg-white/5 rounded-full h-14 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary text-lg">
+            </div>
+
+            <div>
+                <div class="flex items-center bg-black/5 dark:bg-white/5 rounded-full p-1 mb-4">
+                    <button id="todo-tab-btn" class="tab-btn active w-1/2 h-9 rounded-full transition-colors text-sm font-medium">今日待办</button>
+                    <button id="pomodoro-tab-btn" class="tab-btn w-1/2 h-9 rounded-full transition-colors text-sm font-medium">专注时钟</button>
+                </div>
+
+                <div id="tab-content" class="min-h-[250px] p-2">
+                    <div id="todo-content">
+                        <form id="todo-form" class="flex items-center gap-2 mb-4">
+                            <input type="text" id="todo-input" placeholder="正在连接云服务..." disabled class="w-full h-10 bg-black/5 dark:bg-white/5 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50">
+                            <button type="submit" id="todo-submit-btn" disabled class="w-10 h-10 bg-primary text-white rounded-lg flex-shrink-0 hover:bg-opacity-80 transition transform hover:scale-105 disabled:opacity-50"><i class="fa fa-plus"></i></button>
+                        </form>
+                        <ul id="todo-list" class="space-y-2 max-h-[160px] overflow-y-auto pr-2"></ul>
+                         <div id="todo-placeholder" class="hidden text-center text-light-subtle dark:text-dark-subtle pt-10">
+                            <i class="fa fa-check-square-o text-4xl mb-2"></i>
+                            <p>今日事今日毕</p>
+                        </div>
+                    </div>
+
+                    <div id="pomodoro-content" class="hidden text-center flex flex-col items-center justify-center h-full">
+                        <div id="pomodoro-timer" class="text-6xl font-bold mb-4">25:00</div>
+                        <div class="flex gap-4">
+                            <button id="pomodoro-start-btn" class="w-24 h-10 bg-primary text-white rounded-full font-medium hover:bg-opacity-80 transition">开始</button>
+                            <button id="pomodoro-reset-btn" class="w-24 h-10 bg-black/10 dark:bg-white/10 rounded-full font-medium hover:bg-black/20 dark:hover:bg-white/20 transition">重置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="fixed bottom-4 left-1/2 -translate-x-1/2">
+        <div id="dock" class="flex items-center justify-center gap-1 glass-card bg-light-card/80 dark:bg-dark-card/80 p-2 rounded-full shadow-2xl transition-all duration-300 hover:gap-3">
+        </div>
+    </footer>
+    
+    <div class="fixed top-4 right-4 flex space-x-2">
+         <button id="theme-toggle" class="w-10 h-10 flex items-center justify-center glass-card bg-light-card/80 dark:bg-dark-card/80 text-lg rounded-full hover:bg-white/50 dark:hover:bg-black/50 transition-colors">
+            <i class="fa" id="theme-icon"></i>
+        </button>
+        <button id="settings-btn" class="w-10 h-10 flex items-center justify-center glass-card bg-light-card/80 dark:bg-dark-card/80 text-lg rounded-full hover:bg-white/50 dark:hover:bg-black/50 transition-colors">
+            <i class="fa fa-cog"></i>
+        </button>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" style="animation: fadeIn 0.3s ease-out;">
+        <div class="w-full max-w-md mx-auto glass-card bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-6">
+            <h2 class="text-xl font-bold mb-6">高级设置</h2>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-light-subtle dark:text-dark-subtle mb-2">API 提供商</label>
+                    <div class="flex space-x-4">
+                         <label class="flex items-center"><input type="radio" name="api-provider" value="gemini" class="form-radio"><span class="ml-2">Google Gemini</span></label>
+                         <label class="flex items-center"><input type="radio" name="api-provider" value="openai" class="form-radio"><span class="ml-2">OpenAI 兼容</span></label>
+                    </div>
+                </div>
+                <div>
+                    <label for="api-key-input" class="block text-sm font-medium text-light-subtle dark:text-dark-subtle">API 密钥</label>
+                    <div class="mt-1 flex items-center space-x-2">
+                        <input type="password" id="api-key-input" placeholder="输入你的 API Key" class="w-full bg-black/5 dark:bg-white/5 rounded-lg h-10 px-3 focus:outline-none focus:ring-2 focus:ring-primary">
+                        <button id="check-connection-btn" class="px-3 py-2 text-sm bg-black/10 dark:bg-white/10 rounded-lg hover:bg-black/20 dark:hover:bg-white/20 transition">检查连接</button>
+                    </div>
+                    <p id="connection-status" class="text-xs mt-1 h-4"></p>
+                </div>
+                <div>
+                    <label for="proxy-url-input" class="block text-sm font-medium text-light-subtle dark:text-dark-subtle">代理地址 (API 主机)</label>
+                    <input type="text" id="proxy-url-input" placeholder="例如: https://my-proxy.com" class="mt-1 w-full bg-black/5 dark:bg-white/5 rounded-lg h-10 px-3 focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+            </div>
+            <div class="mt-8 flex justify-end space-x-3">
+                <button id="settings-close-btn" class="px-4 py-2 bg-black/10 dark:bg-white/10 rounded-lg hover:bg-black/20 dark:hover:bg-white/20 transition">关闭</button>
+                <button id="settings-save-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-80 transition">保存</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        if (!window.firebase) {
+            document.body.innerHTML = `<div style="color: red; padding: 20px;"><h1>错误：Firebase 模块加载失败，请刷新页面重试。</h1></div>`;
+            throw new Error("Firebase modules not loaded.");
+        }
+    
+        const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore, doc, getDoc, setDoc, addDoc, collection, onSnapshot, query, orderBy, updateDoc, deleteDoc, serverTimestamp } = window.firebase;
+        
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        let app;
+        let auth;
+        let db;
+        let userId;
+
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            onAuthStateChanged(auth, handleAuthState);
+        } catch (e) {
+            console.error("Firebase initialization failed:", e);
+            console.error("无法连接到云服务，部分功能可能无法使用。");
+        }
+
+        // --- LLM API ---
+        const DEFAULT_GEMINI_KEY = ""; // Injected by the environment
+        const DEFAULT_GEMINI_URL = "https://generativelanguage.googleapis.com";
+
+        async function callLLMAPI(prompt, isTest = false) {
+            const provider = localStorage.getItem('llm_provider') || 'gemini';
+            const apiKey = localStorage.getItem('llm_api_key') || (provider === 'gemini' ? DEFAULT_GEMINI_KEY : '');
+            const proxyUrl = localStorage.getItem('llm_proxy_url');
+            
+            let apiUrl, payload, headers;
+
+            if (provider === 'openai') {
+                apiUrl = `${(proxyUrl || 'https://api.openai.com').replace(/\/$/, '')}/v1/chat/completions`;
+                headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
+                payload = { model: "gpt-3.5-turbo", messages: [{ role: "user", content: prompt }] };
+            } else { // gemini
+                const baseUrl = proxyUrl || DEFAULT_GEMINI_URL;
+                apiUrl = `${baseUrl.replace(/\/$/, '')}/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                headers = { 'Content-Type': 'application/json' };
+                payload = { contents: [{ parts: [{ text: prompt }] }] };
+            }
+            
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`API call failed with status: ${response.status}`);
+                const result = await response.json();
+                
+                if (isTest) return { success: true };
+                
+                if (provider === 'openai') {
+                    return result.choices?.[0]?.message?.content || "抱歉，无法获取建议。";
+                } else {
+                    return result.candidates?.[0]?.content?.parts?.[0]?.text || "抱歉，无法获取建议。";
+                }
+            } catch (error) {
+                console.error("LLM API call error:", error);
+                if (isTest) return { success: false, error: error.message };
+                return "抱歉，API调用时发生错误。";
+            }
+        }
+
+        const DOCK_ITEMS = [ { name: 'Bilibili', href: 'https://www.bilibili.com', icon: 'fa-television' }, { name: 'GitHub', href: 'https://github.com', icon: 'fa-github' }, { name: '知乎', href: 'https://www.zhihu.com', icon: 'fa-book' }, { name: 'QQ音乐', href: 'https://y.qq.com', icon: 'fa-music' }, { name: '微博', href: 'https://weibo.com', icon: 'fa-weibo' }, ];
+        const SEARCH_ENGINE_URL = 'https://www.bing.com/search?q=';
+        
+        const body = document.body;
+        const greetingEl = document.getElementById('greeting');
+        const clockEl = document.getElementById('clock');
+        const dateEl = document.getElementById('date');
+        const dailyInspirationEl = document.getElementById('daily-inspiration');
+        const searchInput = document.getElementById('search-input');
+        const dock = document.getElementById('dock');
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const todoTabBtn = document.getElementById('todo-tab-btn');
+        const pomodoroTabBtn = document.getElementById('pomodoro-tab-btn');
+        const todoContent = document.getElementById('todo-content');
+        const pomodoroContent = document.getElementById('pomodoro-content');
+        const todoForm = document.getElementById('todo-form');
+        const todoInput = document.getElementById('todo-input');
+        const todoSubmitBtn = document.getElementById('todo-submit-btn');
+        const todoList = document.getElementById('todo-list');
+        const todoPlaceholder = document.getElementById('todo-placeholder');
+        const pomodoroTimerEl = document.getElementById('pomodoro-timer');
+        const pomodoroStartBtn = document.getElementById('pomodoro-start-btn');
+        const pomodoroResetBtn = document.getElementById('pomodoro-reset-btn');
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const settingsCloseBtn = document.getElementById('settings-close-btn');
+        const settingsSaveBtn = document.getElementById('settings-save-btn');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const proxyUrlInput = document.getElementById('proxy-url-input');
+        const apiProviderRadios = document.querySelectorAll('input[name="api-provider"]');
+        const checkConnectionBtn = document.getElementById('check-connection-btn');
+        const connectionStatusEl = document.getElementById('connection-status');
+
+        let pomodoroInterval, pomodoroTime = 25 * 60, isPomodoroRunning = false;
+        
+        const applyTheme = (theme) => {
+            document.documentElement.classList.toggle('dark', theme === 'dark');
+            body.classList.toggle('dark-theme-bg', theme === 'dark');
+            body.classList.toggle('light-theme-bg', theme !== 'dark');
+            themeIcon.className = theme === 'dark' ? 'fa fa-sun-o' : 'fa fa-moon-o';
+            if (userId) setDoc(doc(db, "artifacts", appId, "users", userId, "settings", "theme"), { mode: theme });
+        };
+        
+        const toggleTheme = () => applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark');
+
+        const updateClockAndDate = () => {
+            const now = new Date();
+            const hour = now.getHours();
+            if (hour < 6) greetingEl.textContent = "凌晨了，注意休息";
+            else if (hour < 12) greetingEl.textContent = "上午好";
+            else if (hour < 14) greetingEl.textContent = "中午好";
+            else if (hour < 18) greetingEl.textContent = "下午好";
+            else greetingEl.textContent = "晚上好";
+            clockEl.textContent = now.toTimeString().substring(0, 5);
+            dateEl.textContent = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${new Intl.DateTimeFormat('zh-CN', { weekday: 'long' }).format(now)}`;
+        };
+        
+        async function fetchDailyInspiration() {
+            const today = new Date().toISOString().split('T')[0];
+            const storedData = localStorage.getItem('dailyInspiration');
+            if (storedData) {
+                const { date, quote } = JSON.parse(storedData);
+                if (date === today) {
+                    dailyInspirationEl.textContent = `✨ ${quote}`;
+                    return;
+                }
+            }
+            const prompt = "请生成一句简短、积极向上、适合学生的励志名言。";
+            const quote = await callLLMAPI(prompt);
+            dailyInspirationEl.textContent = `✨ ${quote}`;
+            localStorage.setItem('dailyInspiration', JSON.stringify({ date: today, quote }));
+        }
+        
+        const renderDock = () => {
+            dock.innerHTML = '';
+            DOCK_ITEMS.forEach(item => {
+                dock.innerHTML += `
+                    <a href="${item.href}" target="_blank" class="w-12 h-12 flex items-center justify-center text-2xl rounded-full relative has-tooltip transition-all duration-300 hover:bg-black/10 dark:hover:bg-white/10 transform hover:scale-110">
+                        <i class="fa ${item.icon}"></i>
+                        <div class="tooltip absolute bottom-full mb-2 px-3 py-1 bg-black/80 text-white text-xs rounded-md whitespace-nowrap">${item.name}</div>
+                    </a>
+                `;
+            });
+        };
+        
+        const handleSearch = () => {
+            const query = searchInput.value.trim();
+            if (!query) return;
+            const url = (query.startsWith('http') || query.includes('.')) ? (query.startsWith('http') ? query : `https://${query}`) : `${SEARCH_ENGINE_URL}${encodeURIComponent(query)}`;
+            window.open(url, '_blank');
+            searchInput.value = '';
+        };
+        
+        const renderTodos = (todos) => {
+            todoList.innerHTML = '';
+            todoPlaceholder.classList.toggle('hidden', todos.length > 0);
+            todos.forEach(todo => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center bg-black/5 dark:bg-white/5 p-2 rounded-lg';
+                li.innerHTML = `
+                    <label class="flex-grow flex items-center cursor-pointer">
+                        <input type="checkbox" data-id="${todo.id}" class="mr-3 h-5 w-5 rounded-md text-primary focus:ring-primary border-gray-300" ${todo.done ? 'checked' : ''}>
+                        <span class="flex-grow">${todo.text}</span>
+                    </label>
+                    <button data-task="${todo.text}" class="breakdown-todo-btn w-7 h-7 text-sm text-yellow-500 hover:text-yellow-400 transition"><i class="fa fa-magic"></i></button>
+                    <button data-id="${todo.id}" class="delete-todo-btn w-7 h-7 text-sm text-light-subtle dark:text-dark-subtle hover:text-red-500 transition"><i class="fa fa-trash-o"></i></button>
+                `;
+                todoList.appendChild(li);
+            });
+        };
+        
+        const updatePomodoroDisplay = () => {
+            pomodoroTimerEl.textContent = `${String(Math.floor(pomodoroTime / 60)).padStart(2, '0')}:${String(pomodoroTime % 60).padStart(2, '0')}`;
+        };
+        const startPomodoro = () => { if (!isPomodoroRunning) { isPomodoroRunning = true; pomodoroStartBtn.textContent = '暂停'; pomodoroInterval = setInterval(() => { pomodoroTime--; updatePomodoroDisplay(); if (pomodoroTime <= 0) { stopPomodoro(); console.log('专注时间结束！'); /* alert('专注时间结束！'); */ } }, 1000); } };
+        const stopPomodoro = () => { clearInterval(pomodoroInterval); isPomodoroRunning = false; pomodoroStartBtn.textContent = '开始'; };
+        const resetPomodoro = () => { stopPomodoro(); pomodoroTime = 25 * 60; updatePomodoroDisplay(); };
+
+        const switchTab = (tab) => {
+            const isTodo = tab === 'todo';
+            todoTabBtn.classList.toggle('active', isTodo);
+            pomodoroTabBtn.classList.toggle('active', !isTodo);
+            todoContent.classList.toggle('hidden', !isTodo);
+            pomodoroContent.classList.toggle('hidden', isTodo);
+        };
+        
+        async function handleAuthState(user) {
+            if (user) {
+                userId = user.uid;
+                const themeDoc = await getDoc(doc(db, "artifacts", appId, "users", userId, "settings", "theme"));
+                applyTheme(themeDoc.exists() ? themeDoc.data().mode : 'light');
+                
+                const q = query(collection(db, "artifacts", appId, "users", userId, "todos"), orderBy("createdAt", "desc"));
+                onSnapshot(q, (snapshot) => {
+                    const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderTodos(todos);
+                });
+
+                // Enable todo form
+                todoInput.disabled = false;
+                todoSubmitBtn.disabled = false;
+                todoInput.placeholder = '添加新任务...';
+
+            } else {
+                signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
+            }
+        }
+        
+        const openSettings = () => {
+            const provider = localStorage.getItem('llm_provider') || 'gemini';
+            document.querySelector(`input[name="api-provider"][value="${provider}"]`).checked = true;
+            apiKeyInput.value = localStorage.getItem('llm_api_key') || '';
+            proxyUrlInput.value = localStorage.getItem('llm_proxy_url') || '';
+            connectionStatusEl.textContent = '';
+            settingsModal.classList.remove('hidden');
+        };
+        const closeSettings = () => settingsModal.classList.add('hidden');
+        const saveSettings = () => {
+            const provider = document.querySelector('input[name="api-provider"]:checked').value;
+            localStorage.setItem('llm_provider', provider);
+            
+            const apiKey = apiKeyInput.value.trim();
+            if (apiKey) localStorage.setItem('llm_api_key', apiKey);
+            else localStorage.removeItem('llm_api_key');
+            
+            const proxyUrl = proxyUrlInput.value.trim();
+            if (proxyUrl) localStorage.setItem('llm_proxy_url', proxyUrl);
+            else localStorage.removeItem('llm_proxy_url');
+            
+            closeSettings();
+        };
+
+        const checkConnection = async () => {
+            connectionStatusEl.textContent = '正在检查...';
+            connectionStatusEl.className = 'text-xs mt-1 h-4 text-light-subtle dark:text-dark-subtle';
+            // Save settings temporarily for the test call
+            const provider = document.querySelector('input[name="api-provider"]:checked').value;
+            const apiKey = apiKeyInput.value.trim();
+            const proxyUrl = proxyUrlInput.value.trim();
+            const originalProvider = localStorage.getItem('llm_provider');
+            const originalApiKey = localStorage.getItem('llm_api_key');
+            const originalProxyUrl = localStorage.getItem('llm_proxy_url');
+            localStorage.setItem('llm_provider', provider);
+            if(apiKey) localStorage.setItem('llm_api_key', apiKey); else localStorage.removeItem('llm_api_key');
+            if(proxyUrl) localStorage.setItem('llm_proxy_url', proxyUrl); else localStorage.removeItem('llm_proxy_url');
+            
+            const result = await callLLMAPI("hi", true);
+            
+            // Restore original settings
+            if (originalProvider) localStorage.setItem('llm_provider', originalProvider); else localStorage.removeItem('llm_provider');
+            if (originalApiKey) localStorage.setItem('llm_api_key', originalApiKey); else localStorage.removeItem('llm_api_key');
+            if (originalProxyUrl) localStorage.setItem('llm_proxy_url', originalProxyUrl); else localStorage.removeItem('llm_proxy_url');
+            
+            if (result.success) {
+                connectionStatusEl.textContent = '连接成功!';
+                connectionStatusEl.className = 'text-xs mt-1 h-4 text-green-500';
+            } else {
+                connectionStatusEl.textContent = `连接失败: ${result.error}`;
+                connectionStatusEl.className = 'text-xs mt-1 h-4 text-red-500';
+            }
+        };
+
+        const setupEventListeners = () => {
+            themeToggle.addEventListener('click', toggleTheme);
+            settingsBtn.addEventListener('click', openSettings);
+            settingsCloseBtn.addEventListener('click', closeSettings);
+            settingsSaveBtn.addEventListener('click', saveSettings);
+            checkConnectionBtn.addEventListener('click', checkConnection);
+
+            searchInput.addEventListener('keydown', (e) => e.key === 'Enter' && handleSearch());
+            todoTabBtn.addEventListener('click', () => switchTab('todo'));
+            pomodoroTabBtn.addEventListener('click', () => switchTab('pomodoro'));
+            todoForm.addEventListener('submit', async (e) => { e.preventDefault(); const text = todoInput.value.trim(); if (text && userId) { await addDoc(collection(db, "artifacts", appId, "users", userId, "todos"), { text, done: false, createdAt: serverTimestamp() }); todoInput.value = ''; } });
+            todoList.addEventListener('click', async (e) => {
+                const button = e.target.closest('button');
+                if (!button) {
+                    const checkbox = e.target.closest('input[type="checkbox"]');
+                    if (checkbox) {
+                        const id = checkbox.dataset.id;
+                        if(id && userId) updateDoc(doc(db, "artifacts", appId, "users", userId, "todos", id), { done: checkbox.checked });
+                    }
+                    return;
+                }
+                if (button.classList.contains('delete-todo-btn')) {
+                    const id = button.dataset.id;
+                    if (id && userId) deleteDoc(doc(db, "artifacts", appId, "users", userId, "todos", id));
+                }
+                if (button.classList.contains('breakdown-todo-btn')) {
+                    const taskText = button.dataset.task;
+                    if (!taskText || !userId) return;
+                    
+                    const icon = button.querySelector('i');
+                    icon.className = 'fa fa-spinner fa-spin';
+                    button.disabled = true;
+
+                    const prompt = `请将以下任务分解为更小的、可执行的步骤，直接返回一个由换行符分隔的列表，不要使用数字或项目符号，每一步都以动词开头:\n\n任务: "${taskText}"`;
+                    const result = await callLLMAPI(prompt);
+                    
+                    const subtasks = result.split('\n').filter(task => task.trim() !== '');
+                    for (const subtask of subtasks) {
+                        await addDoc(collection(db, "artifacts", appId, "users", userId, "todos"), {
+                            text: `↳ ${subtask}`,
+                            done: false,
+                            createdAt: serverTimestamp()
+                        });
+                    }
+                    icon.className = 'fa fa-magic';
+                    button.disabled = false;
+                }
+            });
+            pomodoroStartBtn.addEventListener('click', () => isPomodoroRunning ? stopPomodoro() : startPomodoro());
+            pomodoroResetBtn.addEventListener('click', resetPomodoro);
+        };
+
+        // --- Init App ---
+        updateClockAndDate();
+        setInterval(updateClockAndDate, 1000);
+        renderDock();
+        setupEventListeners();
+        fetchDailyInspiration();
+    </script>
+
+</body></html>
+
+
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
