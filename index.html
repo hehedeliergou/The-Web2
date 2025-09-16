@@ -210,22 +210,33 @@
             const apiKey = localStorage.getItem('llm_api_key') || (provider === 'gemini' ? DEFAULT_GEMINI_KEY : '');
             const proxyUrl = localStorage.getItem('llm_proxy_url');
             
-            let apiUrl, payload, headers;
+            let apiUrl, fetchOptions;
 
             if (provider === 'openai') {
-                apiUrl = `${(proxyUrl || 'https://api.openai.com').replace(/\/$/, '')}/v1/chat/completions`;
-                headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
-                payload = { model: "gpt-3.5-turbo", messages: [{ role: "user", content: prompt }] };
+                const baseUrl = (proxyUrl || 'https://api.openai.com').replace(/\/$/, '');
+                apiUrl = `${baseUrl}/v1/chat/completions`;
+                fetchOptions = {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                    body: JSON.stringify({ model: "gpt-3.5-turbo", messages: [{ role: "user", content: prompt }] })
+                };
             } else { // gemini
                 const baseUrl = proxyUrl || DEFAULT_GEMINI_URL;
                 apiUrl = `${baseUrl.replace(/\/$/, '')}/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                headers = { 'Content-Type': 'application/json' };
-                payload = { contents: [{ parts: [{ text: prompt }] }] };
+                fetchOptions = {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                };
             }
             
             try {
-                const response = await fetch(apiUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`API call failed with status: ${response.status}`);
+                const response = await fetch(apiUrl, fetchOptions);
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.error("API Error Response:", errorBody);
+                    throw new Error(`API call failed with status: ${response.status}`);
+                }
                 const result = await response.json();
                 
                 if (isTest) return { success: true };
